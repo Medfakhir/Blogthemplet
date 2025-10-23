@@ -74,6 +74,9 @@ async function getFeaturedArticles() {
   // Always try to get articles from database first, even without DATABASE_URL
   // This allows the site to work if database is configured in Netlify but not locally
 
+  console.log('Attempting to fetch articles from database...');
+  console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
+  
   try {
     const articles = await safeDbOperation(
       () => prisma.article.findMany({
@@ -103,7 +106,7 @@ async function getFeaturedArticles() {
 
     // If we got articles from database, format and return them
     if (articles && articles.length > 0) {
-      console.log(`Found ${articles.length} articles in database`);
+      console.log(`✅ Successfully found ${articles.length} articles in database`);
       return articles.map(article => ({
         title: article.title,
         excerpt: article.excerpt || '',
@@ -121,26 +124,30 @@ async function getFeaturedArticles() {
     }
 
     // If no articles in database, return empty array (no placeholders)
-    console.log('No articles found in database, showing empty state');
+    console.log('⚠️ Database connected but no published articles found');
     return [];
   } catch (error) {
-    console.error('Error fetching articles:', error);
+    console.error('❌ Database connection failed:', error);
+    console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
+    
     // Only show placeholder if there's a connection error
-    console.log('Database connection failed, showing placeholder article');
     return [
       {
-        title: "Welcome to IPTV Hub - Setup Database Connection",
-        excerpt: "This is a placeholder article. Connect your database to show your real content here.",
-        slug: "setup-database-connection",
+        title: "Database Connection Issue",
+        excerpt: "Unable to connect to database. Please check your database configuration and try again.",
+        slug: "database-connection-issue",
         featuredImage: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=800&h=400&fit=crop",
-        category: "Setup",
+        category: "System",
         publishedAt: "Dec 15, 2024",
         readTime: "1 min read",
-        author: "IPTV Hub Team"
+        author: "System"
       }
     ];
   }
 }
+
+// Force dynamic rendering to ensure database queries work at runtime
+export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   const featuredArticles = await getFeaturedArticles();
