@@ -6,6 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Search, Filter, Grid, List, Calendar, Clock, User, Tag } from "lucide-react";
 import { prisma } from "@/lib/db";
+import { safeDbOperation } from "@/lib/db-utils";
+
+// Force dynamic rendering to ensure database queries work at runtime
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: "All Articles - IPTV Hub",
@@ -14,92 +18,115 @@ export const metadata: Metadata = {
 };
 
 async function getAllArticles() {
+  console.log('📄 Fetching all articles from database...');
+  console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
+  
   try {
-    const articles = await prisma.article.findMany({
-      where: {
-        status: 'PUBLISHED'
-      },
-      include: {
-        author: {
-          select: {
-            name: true
-          }
+    const articles = await safeDbOperation(
+      () => prisma.article.findMany({
+        where: {
+          status: 'PUBLISHED'
         },
-        category: {
-          select: {
-            name: true,
-            slug: true,
-            color: true
-          }
-        },
-        tags: {
-          include: {
-            tag: {
-              select: {
-                name: true,
-                slug: true
+        include: {
+          author: {
+            select: {
+              name: true
+            }
+          },
+          category: {
+            select: {
+              name: true,
+              slug: true,
+              color: true
+            }
+          },
+          tags: {
+            include: {
+              tag: {
+                select: {
+                  name: true,
+                  slug: true
+                }
               }
             }
           }
+        },
+        orderBy: {
+          publishedAt: 'desc'
         }
-      },
-      orderBy: {
-        publishedAt: 'desc'
-      }
-    });
+      }),
+      []
+    );
 
-    return articles.map(article => ({
-      title: article.title,
-      excerpt: article.excerpt || '',
-      slug: article.slug,
-      featuredImage: article.featuredImage || "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=800&h=400&fit=crop",
-      category: article.category.name,
-      categorySlug: article.category.slug,
-      categoryColor: article.category.color,
-      publishedAt: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      }) : '',
-      readTime: `${article.readTime || 5} min read`,
-      author: article.author.name,
-      tags: article.tags.map(t => t.tag.name),
-      viewCount: article.viewCount || 0
-    }));
+    if (articles && articles.length > 0) {
+      console.log(`✅ Successfully found ${articles.length} articles for articles page`);
+      return articles.map(article => ({
+        title: article.title,
+        excerpt: article.excerpt || '',
+        slug: article.slug,
+        featuredImage: article.featuredImage || "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=800&h=400&fit=crop",
+        category: article.category.name,
+        categorySlug: article.category.slug,
+        categoryColor: article.category.color,
+        publishedAt: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        }) : '',
+        readTime: `${article.readTime || 5} min read`,
+        author: article.author.name,
+        tags: article.tags.map(t => t.tag.name),
+        viewCount: article.viewCount || 0
+      }));
+    }
+
+    console.log('⚠️ No articles found in database for articles page');
+    return [];
   } catch (error) {
-    console.error('Error fetching articles:', error);
+    console.error('❌ Error fetching articles for articles page:', error);
     return [];
   }
 }
 
 async function getCategories() {
+  console.log('📂 Fetching categories from database...');
+  
   try {
-    const categories = await prisma.category.findMany({
-      include: {
-        _count: {
-          select: {
-            articles: {
-              where: {
-                status: 'PUBLISHED'
+    const categories = await safeDbOperation(
+      () => prisma.category.findMany({
+        include: {
+          _count: {
+            select: {
+              articles: {
+                where: {
+                  status: 'PUBLISHED'
+                }
               }
             }
           }
+        },
+        orderBy: {
+          name: 'asc'
         }
-      },
-      orderBy: {
-        name: 'asc'
-      }
-    });
+      }),
+      []
+    );
 
-    return categories.map(category => ({
-      id: category.id,
-      name: category.name,
-      slug: category.slug,
-      color: category.color,
-      articleCount: category._count.articles
-    }));
+    if (categories && categories.length > 0) {
+      console.log(`✅ Successfully found ${categories.length} categories`);
+      return categories.map(category => ({
+        id: category.id,
+        name: category.name,
+        slug: category.slug,
+        color: category.color,
+        articleCount: category._count.articles
+      }));
+    }
+
+    console.log('⚠️ No categories found in database');
+    return [];
   } catch (error) {
-    console.error('Error fetching categories:', error);
+    console.error('❌ Error fetching categories:', error);
     return [];
   }
 }
