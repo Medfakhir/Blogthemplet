@@ -9,25 +9,21 @@ const urlEndpoint = process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT;
 let imagekit: ImageKit | null = null;
 
 if (typeof window === 'undefined') {
-  // Server-side only
-  if (!publicKey) {
-    throw new Error('NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY is not set in environment variables');
+  // Server-side only - only initialize if all variables are present
+  if (publicKey && privateKey && urlEndpoint) {
+    try {
+      // Server-side ImageKit instance (with private key)
+      imagekit = new ImageKit({
+        publicKey,
+        privateKey,
+        urlEndpoint,
+      });
+    } catch (error) {
+      console.warn('ImageKit initialization failed:', error);
+    }
+  } else {
+    console.warn('ImageKit environment variables not configured. Image upload features will be disabled.');
   }
-
-  if (!privateKey) {
-    throw new Error('IMAGEKIT_PRIVATE_KEY is not set in environment variables');
-  }
-
-  if (!urlEndpoint) {
-    throw new Error('NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT is not set in environment variables');
-  }
-
-  // Server-side ImageKit instance (with private key)
-  imagekit = new ImageKit({
-    publicKey,
-    privateKey,
-    urlEndpoint,
-  });
 }
 
 export { imagekit };
@@ -41,10 +37,16 @@ export const imagekitConfig = {
 // Helper function to generate authentication parameters for client uploads
 export function getImageKitAuthParams() {
   if (!imagekit) {
-    throw new Error('ImageKit is not initialized. This function can only be called on the server.');
+    console.warn('ImageKit is not initialized. Image upload features are disabled.');
+    return null;
   }
-  const token = imagekit.getAuthenticationParameters();
-  return token;
+  try {
+    const token = imagekit.getAuthenticationParameters();
+    return token;
+  } catch (error) {
+    console.error('Failed to get ImageKit auth params:', error);
+    return null;
+  }
 }
 
 // Helper function to generate optimized image URLs
@@ -58,7 +60,12 @@ export function getOptimizedImageUrl(
     crop?: 'maintain_ratio' | 'force' | 'at_least' | 'at_max';
   }
 ) {
-  const baseUrl = process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT!;
+  const baseUrl = process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT;
+  
+  // If ImageKit is not configured, return the image path as-is
+  if (!baseUrl) {
+    return imagePath;
+  }
   
   if (!transformations) {
     return `${baseUrl}/${imagePath}`;

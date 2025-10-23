@@ -2,8 +2,8 @@
 
 // Client-side ImageKit configuration
 const imagekitConfig = {
-  publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY!,
-  urlEndpoint: process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT!,
+  publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || '',
+  urlEndpoint: process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || '',
 };
 
 interface OptimizedImageProps {
@@ -38,11 +38,12 @@ export default function OptimizedImage({
     );
   }
   
-  // Check if the image is from ImageKit
+  // Check if ImageKit is configured and if the image is from ImageKit
   const isImageKitUrl = src.includes('ik.imagekit.io');
+  const isImageKitConfigured = imagekitConfig.urlEndpoint && imagekitConfig.publicKey;
   
-  if (!isImageKitUrl) {
-    // Fallback to regular img tag for non-ImageKit images
+  if (!isImageKitUrl || !isImageKitConfigured) {
+    // Fallback to regular img tag for non-ImageKit images or when ImageKit is not configured
     return (
       <img
         src={src}
@@ -57,18 +58,6 @@ export default function OptimizedImage({
 
   // Extract the path from ImageKit URL
   const imagePath = src.replace(imagekitConfig.urlEndpoint, '').replace(/^\//, '');
-
-  // Default transformations for optimization
-  const defaultTransformations = [
-    {
-      width: width.toString(),
-      height: height.toString(),
-      quality: quality.toString(),
-      format: 'auto',
-      crop: 'maintain_ratio'
-    },
-    ...transformation
-  ];
 
   // Create optimized ImageKit URL with transformations
   const transformParams = `tr:w-${width},h-${height},q-${quality},f-auto,c-maintain_ratio`;
