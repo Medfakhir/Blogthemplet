@@ -6,113 +6,128 @@ import { ArrowRight } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { safeDbOperation } from "@/lib/db-utils";
 
+// Demo articles for when database is not available
+const getDemoArticles = () => [
+  {
+    title: "Best IPTV Players for Android TV Box 2024",
+    excerpt: "Discover the top IPTV players that work perfectly with Android TV boxes. Complete setup guide and feature comparison.",
+    slug: "best-iptv-players-android-tv-box-2024",
+    featuredImage: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=800&h=400&fit=crop",
+    category: "Reviews",
+    publishedAt: "Dec 15, 2024",
+    readTime: "8 min read",
+    author: "IPTV Hub Team"
+  },
+  {
+    title: "How to Setup IPTV on Firestick - Complete Guide",
+    excerpt: "Step-by-step tutorial to install and configure IPTV on Amazon Firestick. Works with all popular IPTV apps.",
+    slug: "setup-iptv-firestick-guide",
+    featuredImage: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=800&h=400&fit=crop",
+    category: "Tutorials",
+    publishedAt: "Dec 12, 2024",
+    readTime: "6 min read",
+    author: "IPTV Hub Team"
+  },
+  {
+    title: "Top 10 Android TV Boxes for IPTV Streaming",
+    excerpt: "Compare the best Android TV boxes optimized for IPTV streaming. Performance tests and buying recommendations.",
+    slug: "top-android-tv-boxes-iptv-streaming",
+    featuredImage: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=400&fit=crop",
+    category: "Hardware",
+    publishedAt: "Dec 10, 2024",
+    readTime: "10 min read",
+    author: "IPTV Hub Team"
+  },
+  {
+    title: "IPTV vs Cable TV: Which is Better in 2024?",
+    excerpt: "Comprehensive comparison between IPTV and traditional cable TV. Cost analysis, features, and recommendations.",
+    slug: "iptv-vs-cable-tv-comparison-2024",
+    featuredImage: "https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?w=800&h=400&fit=crop",
+    category: "Comparison",
+    publishedAt: "Dec 8, 2024",
+    readTime: "7 min read",
+    author: "IPTV Hub Team"
+  },
+  {
+    title: "Troubleshooting Common IPTV Issues",
+    excerpt: "Fix buffering, connection problems, and other common IPTV issues. Expert solutions and optimization tips.",
+    slug: "troubleshooting-common-iptv-issues",
+    featuredImage: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&h=400&fit=crop",
+    category: "Support",
+    publishedAt: "Dec 5, 2024",
+    readTime: "9 min read",
+    author: "IPTV Hub Team"
+  },
+  {
+    title: "Best Free IPTV Apps for Smart TV",
+    excerpt: "Discover the top free IPTV applications for Smart TVs. Installation guides and feature reviews included.",
+    slug: "best-free-iptv-apps-smart-tv",
+    featuredImage: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=800&h=400&fit=crop",
+    category: "Apps",
+    publishedAt: "Dec 3, 2024",
+    readTime: "5 min read",
+    author: "IPTV Hub Team"
+  }
+];
+
 async function getFeaturedArticles() {
+  // Check if we have database connection by checking environment variables
+  if (!process.env.DATABASE_URL) {
+    console.log('No database URL found, using demo articles');
+    return getDemoArticles();
+  }
+
   try {
     const articles = await safeDbOperation(
       () => prisma.article.findMany({
-      where: {
-        status: 'PUBLISHED'
-      },
-      include: {
-        author: {
-          select: {
-            name: true
+        where: {
+          status: 'PUBLISHED'
+        },
+        include: {
+          author: {
+            select: {
+              name: true
+            }
+          },
+          category: {
+            select: {
+              name: true,
+              slug: true
+            }
           }
         },
-        category: {
-          select: {
-            name: true,
-            slug: true
-          }
-        }
-      },
-      orderBy: {
-        publishedAt: 'desc'
-      },
-      take: 6 // Get latest 6 articles
-    }),
-    []
-  ) || [];
+        orderBy: {
+          publishedAt: 'desc'
+        },
+        take: 6 // Get latest 6 articles
+      }),
+      []
+    );
 
-    return articles.map(article => ({
-      title: article.title,
-      excerpt: article.excerpt || '',
-      slug: article.slug,
-      featuredImage: article.featuredImage || "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=800&h=400&fit=crop",
-      category: article.category.name,
-      publishedAt: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      }) : '',
-      readTime: `${article.readTime || 5} min read`,
-      author: article.author.name
-    }));
+    // If we got articles from database, format them
+    if (articles && articles.length > 0) {
+      return articles.map(article => ({
+        title: article.title,
+        excerpt: article.excerpt || '',
+        slug: article.slug,
+        featuredImage: article.featuredImage || "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=800&h=400&fit=crop",
+        category: article.category.name,
+        publishedAt: article.publishedAt ? new Date(article.publishedAt).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        }) : '',
+        readTime: `${article.readTime || 5} min read`,
+        author: article.author.name
+      }));
+    }
+
+    // If no articles in database, return demo articles
+    return getDemoArticles();
   } catch (error) {
     console.error('Error fetching articles:', error);
     // Fallback to demo articles when database is not available
-    return [
-      {
-        title: "Best IPTV Players for Android TV Box 2024",
-        excerpt: "Discover the top IPTV players that work perfectly with Android TV boxes. Complete setup guide and feature comparison.",
-        slug: "best-iptv-players-android-tv-box-2024",
-        featuredImage: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=800&h=400&fit=crop",
-        category: "Reviews",
-        publishedAt: "Dec 15, 2024",
-        readTime: "8 min read",
-        author: "IPTV Hub Team"
-      },
-      {
-        title: "How to Setup IPTV on Firestick - Complete Guide",
-        excerpt: "Step-by-step tutorial to install and configure IPTV on Amazon Firestick. Works with all popular IPTV apps.",
-        slug: "setup-iptv-firestick-guide",
-        featuredImage: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=800&h=400&fit=crop",
-        category: "Tutorials",
-        publishedAt: "Dec 12, 2024",
-        readTime: "6 min read",
-        author: "IPTV Hub Team"
-      },
-      {
-        title: "Top 10 Android TV Boxes for IPTV Streaming",
-        excerpt: "Compare the best Android TV boxes optimized for IPTV streaming. Performance tests and buying recommendations.",
-        slug: "top-android-tv-boxes-iptv-streaming",
-        featuredImage: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=400&fit=crop",
-        category: "Hardware",
-        publishedAt: "Dec 10, 2024",
-        readTime: "10 min read",
-        author: "IPTV Hub Team"
-      },
-      {
-        title: "IPTV vs Cable TV: Which is Better in 2024?",
-        excerpt: "Comprehensive comparison between IPTV and traditional cable TV. Cost analysis, features, and recommendations.",
-        slug: "iptv-vs-cable-tv-comparison-2024",
-        featuredImage: "https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?w=800&h=400&fit=crop",
-        category: "Comparison",
-        publishedAt: "Dec 8, 2024",
-        readTime: "7 min read",
-        author: "IPTV Hub Team"
-      },
-      {
-        title: "Troubleshooting Common IPTV Issues",
-        excerpt: "Fix buffering, connection problems, and other common IPTV issues. Expert solutions and optimization tips.",
-        slug: "troubleshooting-common-iptv-issues",
-        featuredImage: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&h=400&fit=crop",
-        category: "Support",
-        publishedAt: "Dec 5, 2024",
-        readTime: "9 min read",
-        author: "IPTV Hub Team"
-      },
-      {
-        title: "Best Free IPTV Apps for Smart TV",
-        excerpt: "Discover the top free IPTV applications for Smart TVs. Installation guides and feature reviews included.",
-        slug: "best-free-iptv-apps-smart-tv",
-        featuredImage: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=800&h=400&fit=crop",
-        category: "Apps",
-        publishedAt: "Dec 3, 2024",
-        readTime: "5 min read",
-        author: "IPTV Hub Team"
-      }
-    ];
+    return getDemoArticles();
   }
 }
 
