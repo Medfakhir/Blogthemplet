@@ -73,8 +73,39 @@ const getDemoArticles = () => [
 async function getFeaturedArticles() {
   // Check if we have database connection by checking environment variables
   if (!process.env.DATABASE_URL) {
-    console.log('No database URL found, returning empty array');
-    return [];
+    console.log('No database URL found, using placeholder articles');
+    return [
+      {
+        title: "Welcome to IPTV Hub - Your Ultimate IPTV Guide",
+        excerpt: "Discover comprehensive guides, reviews, and tutorials for IPTV streaming. Get started with the best IPTV solutions today.",
+        slug: "welcome-to-iptv-hub",
+        featuredImage: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=800&h=400&fit=crop",
+        category: "Getting Started",
+        publishedAt: "Dec 15, 2024",
+        readTime: "3 min read",
+        author: "IPTV Hub Team"
+      },
+      {
+        title: "Best IPTV Players for Streaming in 2024",
+        excerpt: "Compare the top IPTV players and find the perfect solution for your streaming needs. Complete setup guides included.",
+        slug: "best-iptv-players-2024",
+        featuredImage: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=800&h=400&fit=crop",
+        category: "Reviews",
+        publishedAt: "Dec 12, 2024",
+        readTime: "5 min read",
+        author: "IPTV Hub Team"
+      },
+      {
+        title: "IPTV Setup Guide for Beginners",
+        excerpt: "Step-by-step tutorial to get started with IPTV streaming. Everything you need to know from installation to optimization.",
+        slug: "iptv-setup-guide-beginners",
+        featuredImage: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=400&fit=crop",
+        category: "Tutorials",
+        publishedAt: "Dec 10, 2024",
+        readTime: "7 min read",
+        author: "IPTV Hub Team"
+      }
+    ];
   }
 
   try {
@@ -122,12 +153,74 @@ async function getFeaturedArticles() {
       }));
     }
 
-    // If no articles in database, return empty array
-    return [];
+    // If no articles in database, return placeholder articles
+    return [
+      {
+        title: "Welcome to IPTV Hub - Your Ultimate IPTV Guide",
+        excerpt: "Discover comprehensive guides, reviews, and tutorials for IPTV streaming. Get started with the best IPTV solutions today.",
+        slug: "welcome-to-iptv-hub",
+        featuredImage: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=800&h=400&fit=crop",
+        category: "Getting Started",
+        publishedAt: "Dec 15, 2024",
+        readTime: "3 min read",
+        author: "IPTV Hub Team"
+      },
+      {
+        title: "Best IPTV Players for Streaming in 2024",
+        excerpt: "Compare the top IPTV players and find the perfect solution for your streaming needs. Complete setup guides included.",
+        slug: "best-iptv-players-2024",
+        featuredImage: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=800&h=400&fit=crop",
+        category: "Reviews",
+        publishedAt: "Dec 12, 2024",
+        readTime: "5 min read",
+        author: "IPTV Hub Team"
+      },
+      {
+        title: "IPTV Setup Guide for Beginners",
+        excerpt: "Step-by-step tutorial to get started with IPTV streaming. Everything you need to know from installation to optimization.",
+        slug: "iptv-setup-guide-beginners",
+        featuredImage: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=400&fit=crop",
+        category: "Tutorials",
+        publishedAt: "Dec 10, 2024",
+        readTime: "7 min read",
+        author: "IPTV Hub Team"
+      }
+    ];
   } catch (error) {
     console.error('Error fetching articles:', error);
-    // Return empty array when database is not available
-    return [];
+    // Return placeholder articles when database is not available
+    return [
+      {
+        title: "Welcome to IPTV Hub - Your Ultimate IPTV Guide",
+        excerpt: "Discover comprehensive guides, reviews, and tutorials for IPTV streaming. Get started with the best IPTV solutions today.",
+        slug: "welcome-to-iptv-hub",
+        featuredImage: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=800&h=400&fit=crop",
+        category: "Getting Started",
+        publishedAt: "Dec 15, 2024",
+        readTime: "3 min read",
+        author: "IPTV Hub Team"
+      },
+      {
+        title: "Best IPTV Players for Streaming in 2024",
+        excerpt: "Compare the top IPTV players and find the perfect solution for your streaming needs. Complete setup guides included.",
+        slug: "best-iptv-players-2024",
+        featuredImage: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=800&h=400&fit=crop",
+        category: "Reviews",
+        publishedAt: "Dec 12, 2024",
+        readTime: "5 min read",
+        author: "IPTV Hub Team"
+      },
+      {
+        title: "IPTV Setup Guide for Beginners",
+        excerpt: "Step-by-step tutorial to get started with IPTV streaming. Everything you need to know from installation to optimization.",
+        slug: "iptv-setup-guide-beginners",
+        featuredImage: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=400&fit=crop",
+        category: "Tutorials",
+        publishedAt: "Dec 10, 2024",
+        readTime: "7 min read",
+        author: "IPTV Hub Team"
+      }
+    ];
   }
 }
 
