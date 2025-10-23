@@ -1,5 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { imagekit } from '@/lib/imagekit';
+import crypto from 'crypto';
+
+// Helper function to generate SEO-friendly filename
+function generateSEOFilename(originalName: string, context?: string): string {
+  const timestamp = Date.now();
+  const randomId = crypto.randomBytes(4).toString('hex');
+  
+  // Remove file extension and clean the name
+  const nameWithoutExt = originalName.replace(/\.[^/.]+$/, '');
+  const cleanName = nameWithoutExt
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '') // Remove special chars
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-') // Remove multiple hyphens
+    .substring(0, 50); // Limit length
+  
+  // Add context if provided (like article title keywords)
+  const contextPart = context ? `-${context.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 20)}` : '';
+  
+  return `${cleanName}${contextPart}-${timestamp}-${randomId}`;
+}
+
+// Helper function to generate cache-busting URL
+function generateCacheBustingUrl(baseUrl: string): string {
+  const timestamp = Date.now();
+  const separator = baseUrl.includes('?') ? '&' : '?';
+  return `${baseUrl}${separator}v=${timestamp}&cache=fresh`;
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,6 +39,9 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
+    const context = formData.get('context') as string; // Article title or context for SEO
+    const altText = formData.get('altText') as string; // SEO alt text
+    const description = formData.get('description') as string; // Image description
 
     if (!file) {
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
@@ -32,27 +63,68 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Create unique filename
-    const timestamp = Date.now();
-    const filename = `${timestamp}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+    // Generate SEO-friendly filename
+    const seoFilename = generateSEOFilename(file.name, context);
+    const fileExtension = file.name.split('.').pop() || 'jpg';
+    const finalFilename = `${seoFilename}.${fileExtension}`;
     
-    // Upload to ImageKit
+    // Enhanced tags for better organization and SEO
+    const tags = [
+      'blog', 
+      'article', 
+      'iptv',
+      'seo-optimized',
+      `uploaded-${new Date().toISOString().split('T')[0]}` // Date tag
+    ];
+    
+    if (context) {
+      tags.push(`context-${context.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 15)}`);
+    }
+    
+    // Upload to ImageKit with enhanced metadata
     const uploadResponse = await imagekit.upload({
       file: buffer,
-      fileName: filename,
-      folder: '/blog/articles', // Organize images in folders
+      fileName: finalFilename,
+      folder: '/blog/articles/optimized', // Organized folder structure
       useUniqueFileName: true,
-      tags: ['blog', 'article', 'featured-image'],
+      tags: tags,
+      customMetadata: {
+        altText: altText || `IPTV related image - ${context || 'Blog content'}`,
+        description: description || 'SEO optimized image for IPTV blog',
+        uploadedAt: new Date().toISOString(),
+        context: context || 'general',
+        seoOptimized: 'true'
+      }
     });
 
-    // Return the ImageKit URL and metadata
+    // Generate cache-busting URL for immediate freshness
+    const cacheBustingUrl = generateCacheBustingUrl(uploadResponse.url);
+    
+    // Generate responsive image URLs for different sizes
+    const responsiveUrls = {
+      thumbnail: `${uploadResponse.url}?tr=w-150,h-150,c-maintain_ratio,q-80,f-webp`,
+      small: `${uploadResponse.url}?tr=w-400,h-300,c-maintain_ratio,q-85,f-webp`,
+      medium: `${uploadResponse.url}?tr=w-800,h-600,c-maintain_ratio,q-90,f-webp`,
+      large: `${uploadResponse.url}?tr=w-1200,h-900,c-maintain_ratio,q-95,f-webp`,
+      original: cacheBustingUrl
+    };
+
+    // Return enhanced response with SEO data
     return NextResponse.json({ 
       success: true, 
-      url: uploadResponse.url,
+      url: cacheBustingUrl, // Cache-busting URL
+      originalUrl: uploadResponse.url,
+      responsiveUrls: responsiveUrls,
       fileId: uploadResponse.fileId,
       filename: uploadResponse.name,
+      seoFilename: finalFilename,
       size: uploadResponse.size,
       thumbnailUrl: uploadResponse.thumbnailUrl,
+      altText: altText || `IPTV related image - ${context || 'Blog content'}`,
+      description: description || 'SEO optimized image for IPTV blog',
+      tags: tags,
+      uploadedAt: new Date().toISOString(),
+      cacheVersion: Date.now() // For cache management
     });
 
   } catch (error) {

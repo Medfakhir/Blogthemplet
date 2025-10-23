@@ -14,6 +14,7 @@ import { ArrowLeft, Save, Eye, Plus, X, Upload, Image as ImageIcon, Loader2 } fr
 import { toast } from "sonner";
 import Link from "next/link";
 import RichTextEditor from "@/components/editor/rich-text-editor";
+import SEOImageUpload from "@/components/admin/seo-image-upload";
 
 interface EditArticlePageProps {
   params: Promise<{
