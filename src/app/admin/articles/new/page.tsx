@@ -14,7 +14,6 @@ import { ArrowLeft, Save, Eye, Plus, X, Upload, Image as ImageIcon, Loader2 } fr
 import { toast } from "sonner";
 import Link from "next/link";
 import RichTextEditor from "@/components/editor/rich-text-editor";
-import SEOImageUpload from "@/components/admin/seo-image-upload";
 
 export default function NewArticlePage() {
   const router = useRouter();
@@ -35,6 +34,8 @@ export default function NewArticlePage() {
     seoKeywords: "",
   });
 
+  const [featuredImageFile, setFeaturedImageFile] = useState<File | null>(null);
+  const [featuredImagePreview, setFeaturedImagePreview] = useState<string>("");
 
   const [categories, setCategories] = useState<Array<{id: string, name: string, slug: string}>>([]);
   const [adminUserId, setAdminUserId] = useState<string>("");
@@ -102,6 +103,53 @@ export default function NewArticlePage() {
     setTags(tags.filter(tag => tag !== tagToRemove));
   };
 
+  const handleFeaturedImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setFeaturedImageFile(file);
+      const previewUrl = URL.createObjectURL(file);
+      setFeaturedImagePreview(previewUrl);
+
+      // Upload to server and get permanent URL
+      try {
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', file);
+
+        const uploadResponse = await fetch('/api/upload', {
+          method: 'POST',
+          body: uploadFormData,
+        });
+
+        if (uploadResponse.ok) {
+          const result = await uploadResponse.json();
+          // Store the permanent URL in database
+          setFormData(prev => ({
+            ...prev,
+            featuredImage: result.url // Permanent URL for database
+          }));
+          
+          toast.success('Image uploaded to ImageKit successfully!', {
+            description: `Image uploaded: ${result.filename} (${Math.round(result.size / 1024)}KB)`,
+            duration: 4000,
+          });
+        } else {
+          throw new Error('Upload failed');
+        }
+      } catch (error) {
+        console.error('Upload error:', error);
+        toast.error('Failed to upload image', {
+          description: 'Please try again or choose a different image.',
+          duration: 5000,
+        });
+        
+        // Fallback to preview URL for now
+        setFormData(prev => ({
+          ...prev,
+          featuredImage: previewUrl
+        }));
+      }
+    }
+  };
 
   const handleSubmit = async (status: "DRAFT" | "PUBLISHED") => {
     setIsLoading(true);
@@ -261,18 +309,64 @@ export default function NewArticlePage() {
                 />
               </div>
 
-              {/* SEO-Optimized Featured Image Upload */}
-              <SEOImageUpload
-                context={formData.title}
-                onImageUploaded={(imageData) => {
-                  setFormData(prev => ({
-                    ...prev,
-                    featuredImage: imageData.url // Use cache-busting URL
-                  }));
-                  toast.success('🚀 Featured image uploaded with SEO optimization!');
-                }}
-                className="w-full"
-              />
+              <div className="space-y-2">
+                <Label htmlFor="featuredImage">Featured Image</Label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                  {featuredImagePreview ? (
+                    <div className="space-y-4">
+                      <img
+                        src={featuredImagePreview}
+                        alt="Featured image preview"
+                        className="max-w-full h-48 object-cover rounded-lg mx-auto"
+                      />
+                      <div className="flex justify-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => document.getElementById('featured-image-upload')?.click()}
+                        >
+                          <Upload className="h-4 w-4 mr-2" />
+                          Change Image
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setFeaturedImageFile(null);
+                            setFeaturedImagePreview("");
+                            setFormData(prev => ({ ...prev, featuredImage: "" }));
+                          }}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-600">
+                          Upload a featured image for your article
+                        </p>
+                        <Button
+                          variant="outline"
+                          onClick={() => document.getElementById('featured-image-upload')?.click()}
+                        >
+                          <Upload className="h-4 w-4 mr-2" />
+                          Upload Image
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  <input
+                    id="featured-image-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFeaturedImageUpload}
+                  />
+                </div>
+              </div>
             </CardContent>
           </Card>
 

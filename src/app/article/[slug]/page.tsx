@@ -6,11 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Calendar, Clock, ArrowLeft, Share2, BookOpen, User, Tag } from "lucide-react";
 import { prisma } from "@/lib/db";
-import { safeDbOperation } from "@/lib/db-utils";
 import CommentSection from "@/components/comments/comment-section";
 
-// Use static generation with fallback for better performance on Netlify
-export const revalidate = 3600; // Revalidate every hour
+// Force dynamic rendering to avoid caching issues with settings
+export const dynamic = 'force-dynamic';
 
 interface ArticlePageProps {
   params: Promise<{
@@ -19,145 +18,62 @@ interface ArticlePageProps {
 }
 
 async function getArticle(slug: string) {
-  console.log(`📄 Fetching article: ${slug}`);
-  
   try {
-    const article = await safeDbOperation(
-      () => prisma.article.findUnique({
-        where: {
-          slug: slug,
-          status: 'PUBLISHED'
+    const article = await prisma.article.findUnique({
+      where: {
+        slug: slug,
+        status: 'PUBLISHED'
+      },
+      include: {
+        author: {
+          select: {
+            name: true
+          }
         },
-        include: {
-          author: {
-            select: {
-              name: true
-            }
-          },
-          category: {
-            select: {
-              name: true,
-              slug: true
-            }
-          },
-          tags: {
-            include: {
-              tag: {
-                select: {
-                  name: true,
-                  slug: true
-                }
+        category: {
+          select: {
+            name: true,
+            slug: true
+          }
+        },
+        tags: {
+          include: {
+            tag: {
+              select: {
+                name: true,
+                slug: true
               }
             }
           }
         }
-      }),
-      null
-    );
+      }
+    });
 
-    if (article) {
-      console.log(`✅ Found article: ${article.title}`);
-      return {
-        id: article.id,
-        title: article.title,
-        description: article.excerpt || '',
-        content: article.content,
-        slug: article.slug,
-        publishedAt: article.publishedAt?.toISOString() || '',
-        updatedAt: article.updatedAt.toISOString(),
-        readTime: `${article.readTime || 5} min read`,
-        category: article.category.slug,
-        categoryName: article.category.name,
-        author: article.author.name,
-        tags: article.tags.map(t => t.tag.name),
-        featured: true,
-        views: article.viewCount || 0,
-        featuredImage: article.featuredImage
-      };
+    if (!article) {
+      return null;
     }
 
-    // If no article found in database, check if it's a demo article
-    console.log(`⚠️ Article not found in database: ${slug}`);
-    return getDemoArticle(slug);
-    
-  } catch (error) {
-    console.error('❌ Error fetching article:', error);
-    // Return demo article as fallback
-    return getDemoArticle(slug);
-  }
-}
-
-// Demo article fallback when database is not available
-function getDemoArticle(slug: string) {
-  const demoArticles: { [key: string]: any } = {
-    "welcome-to-iptv-hub": {
-      id: "demo-1",
-      title: "Welcome to IPTV Hub - Your Ultimate IPTV Guide",
-      description: "Discover comprehensive guides, reviews, and tutorials for IPTV streaming. Get started with the best IPTV solutions today.",
-      content: `# Welcome to IPTV Hub - Your Ultimate IPTV Guide
-
-Welcome to IPTV Hub, your comprehensive resource for everything related to Internet Protocol Television (IPTV). Whether you're new to IPTV or looking to enhance your streaming experience, we've got you covered.
-
-## What is IPTV?
-
-IPTV (Internet Protocol Television) is a digital television broadcasting protocol that delivers television content over internet networks rather than traditional terrestrial, satellite, or cable formats.
-
-## What You'll Find Here
-
-### 📺 IPTV Player Reviews
-- Comprehensive reviews of popular IPTV players
-- Feature comparisons and recommendations
-- Installation guides for different devices
-
-### 🔧 Setup Guides
-- Step-by-step installation tutorials
-- Device-specific configuration guides
-- Troubleshooting common issues
-
-### 📱 Device Compatibility
-- Android TV and Android boxes
-- Amazon Fire TV Stick
-- Smart TVs and streaming devices
-- Mobile devices and tablets
-
-## Getting Started
-
-1. **Choose Your Device**: Determine which device you'll use for IPTV streaming
-2. **Select an IPTV Player**: Browse our reviews to find the best player for your needs
-3. **Follow Setup Guides**: Use our detailed tutorials for installation and configuration
-4. **Enjoy Streaming**: Start watching your favorite content
-
-## Legal Considerations
-
-Always ensure you're using IPTV services legally. Only use legitimate IPTV providers that have proper licensing for the content they distribute.
-
-## Stay Updated
-
-IPTV technology is constantly evolving. Bookmark our site and check back regularly for the latest guides, reviews, and updates in the IPTV world.
-
-Happy streaming!`,
-      slug: "welcome-to-iptv-hub",
-      publishedAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      readTime: "3 min read",
-      category: "getting-started",
-      categoryName: "Getting Started",
-      author: "IPTV Hub Team",
-      tags: ["IPTV", "Getting Started", "Guide"],
+    return {
+      id: article.id,
+      title: article.title,
+      description: article.excerpt || '',
+      content: article.content,
+      slug: article.slug,
+      publishedAt: article.publishedAt?.toISOString() || '',
+      updatedAt: article.updatedAt.toISOString(),
+      readTime: `${article.readTime || 5} min read`,
+      category: article.category.slug,
+      categoryName: article.category.name,
+      author: article.author.name,
+      tags: article.tags.map(t => t.tag.name),
       featured: true,
-      views: 0,
-      featuredImage: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=800&h=400&fit=crop&auto=format&q=80"
-    }
-  };
-
-  const demoArticle = demoArticles[slug];
-  if (demoArticle) {
-    console.log(`📋 Returning demo article: ${demoArticle.title}`);
-    return demoArticle;
+      views: article.viewCount || 0,
+      featuredImage: article.featuredImage
+    };
+  } catch (error) {
+    console.error('Error fetching article:', error);
+    return null;
   }
-
-  console.log(`❌ No demo article found for slug: ${slug}`);
-  return null;
 }
 
 // Keep mock articles as fallback
@@ -578,23 +494,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           ))}
         </div>
 
-        {/* Featured Image */}
-        {article.featuredImage && (
-          <div className="mb-8">
-            <img
-              src={article.featuredImage}
-              alt={article.title}
-              className="w-full h-64 md:h-96 object-cover rounded-lg shadow-lg"
-              loading="eager"
-              onError={(e) => {
-                // Fallback image if the main image fails to load
-                const target = e.target as HTMLImageElement;
-                target.src = "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=800&h=400&fit=crop&auto=format&q=80";
-              }}
-            />
-          </div>
-        )}
-
         {/* Action Buttons */}
         <div className="flex items-center gap-4">
           <Button variant="outline" size="sm" asChild>
@@ -672,37 +571,20 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
 export async function generateStaticParams() {
   try {
-    console.log('🔧 Generating static params for articles...');
+    const articles = await prisma.article.findMany({
+      where: {
+        status: 'PUBLISHED'
+      },
+      select: {
+        slug: true
+      }
+    });
     
-    const articles = await safeDbOperation(
-      () => prisma.article.findMany({
-        where: {
-          status: 'PUBLISHED'
-        },
-        select: {
-          slug: true
-        }
-      }),
-      []
-    );
-    
-    if (articles && articles.length > 0) {
-      console.log(`✅ Found ${articles.length} articles for static generation`);
-      return articles.map((article) => ({
-        slug: article.slug,
-      }));
-    }
-    
-    // Fallback to demo article slugs if no database articles
-    console.log('⚠️ No database articles found, using demo article slugs');
-    return [
-      { slug: 'welcome-to-iptv-hub' }
-    ];
+    return articles.map((article) => ({
+      slug: article.slug,
+    }));
   } catch (error) {
-    console.error('❌ Error generating static params:', error);
-    // Return demo article slugs as fallback
-    return [
-      { slug: 'welcome-to-iptv-hub' }
-    ];
+    console.error('Error generating static params:', error);
+    return [];
   }
 }
