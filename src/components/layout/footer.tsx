@@ -5,24 +5,45 @@ import { Tv } from "lucide-react";
 import { useRealtime } from "@/contexts/realtime-context";
 import { useState, useEffect } from "react";
 
+interface FooterPage {
+  id: string;
+  title: string;
+  slug: string;
+}
+
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   const { data: realtimeData, isInitialLoading } = useRealtime();
   const [isMounted, setIsMounted] = useState(false);
+  const [footerPages, setFooterPages] = useState<FooterPage[]>([]);
+  const [isLoadingPages, setIsLoadingPages] = useState(true);
 
   useEffect(() => {
     setIsMounted(true);
+    fetchFooterPages();
   }, []);
 
-  const footerLinks = [
-    { name: "Contact", href: "/pages/contact" },
-    { name: "Editorial Guidelines", href: "/pages/editorial-guidelines" },
-    { name: "Terms of Service", href: "/pages/terms-of-service" },
-    { name: "Disclaimer", href: "/pages/disclaimer" },
-    { name: "DMCA Policy", href: "/pages/dmca-policy" },
-    { name: "Advertising Disclosure", href: "/pages/advertising-disclosure" },
-    { name: "Privacy Policy", href: "/pages/privacy-policy" },
-  ];
+  const fetchFooterPages = async () => {
+    try {
+      const response = await fetch('/api/pages?footer=true');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && Array.isArray(data.pages)) {
+          setFooterPages(data.pages);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching footer pages:', error);
+      // Fallback to default pages if API fails
+      setFooterPages([
+        { id: '1', title: "Privacy Policy", slug: "privacy-policy" },
+        { id: '2', title: "Terms of Service", slug: "terms-of-service" },
+        { id: '3', title: "Contact", slug: "contact" },
+      ]);
+    } finally {
+      setIsLoadingPages(false);
+    }
+  };
 
   return (
     <footer className="bg-muted/50 border-t">
@@ -56,15 +77,25 @@ export default function Footer() {
 
           {/* Footer Links */}
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mb-8">
-            {footerLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {link.name}
-              </Link>
-            ))}
+            {isLoadingPages ? (
+              // Loading skeleton
+              <div className="flex gap-x-6">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="animate-pulse bg-gray-200 rounded h-4 w-20"></div>
+                ))}
+              </div>
+            ) : (
+              // Dynamic pages from admin dashboard
+              footerPages.map((page) => (
+                <Link
+                  key={page.id}
+                  href={`/pages/${page.slug}`}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {page.title}
+                </Link>
+              ))
+            )}
           </div>
         </div>
 
