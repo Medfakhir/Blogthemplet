@@ -494,6 +494,23 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           ))}
         </div>
 
+        {/* Featured Image */}
+        {article.featuredImage && (
+          <div className="mb-8">
+            <img
+              src={article.featuredImage}
+              alt={article.title}
+              className="w-full h-64 md:h-96 object-cover rounded-lg shadow-lg"
+              loading="eager"
+              onError={(e) => {
+                // Fallback image if the main image fails to load
+                const target = e.target as HTMLImageElement;
+                target.src = "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=800&h=400&fit=crop&auto=format&q=80";
+              }}
+            />
+          </div>
+        )}
+
         {/* Action Buttons */}
         <div className="flex items-center gap-4">
           <Button variant="outline" size="sm" asChild>

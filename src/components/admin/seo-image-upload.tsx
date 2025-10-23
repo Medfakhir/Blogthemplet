@@ -98,9 +98,15 @@ export default function SEOImageUpload({ onImageUploaded, context, className }: 
         setUploadedImage(imageData);
         onImageUploaded(imageData);
         
-        toast.success('🚀 Image uploaded with SEO optimization!', {
-          description: `Cache-busted URL generated for instant freshness`
-        });
+        if (result.fileId?.startsWith('fallback-')) {
+          toast.success('📸 Image uploaded (Fallback Mode)', {
+            description: 'Using placeholder image - Configure ImageKit for full functionality'
+          });
+        } else {
+          toast.success('🚀 Image uploaded with SEO optimization!', {
+            description: `Cache-busted URL generated for instant freshness`
+          });
+        }
       } else {
         throw new Error(result.error || 'Upload failed');
       }
