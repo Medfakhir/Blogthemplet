@@ -73,8 +73,8 @@ const getDemoArticles = () => [
 async function getFeaturedArticles() {
   // Check if we have database connection by checking environment variables
   if (!process.env.DATABASE_URL) {
-    console.log('No database URL found, using demo articles');
-    return getDemoArticles();
+    console.log('No database URL found, returning empty array');
+    return [];
   }
 
   try {
@@ -122,12 +122,12 @@ async function getFeaturedArticles() {
       }));
     }
 
-    // If no articles in database, return demo articles
-    return getDemoArticles();
+    // If no articles in database, return empty array
+    return [];
   } catch (error) {
     console.error('Error fetching articles:', error);
-    // Fallback to demo articles when database is not available
-    return getDemoArticles();
+    // Return empty array when database is not available
+    return [];
   }
 }
 
