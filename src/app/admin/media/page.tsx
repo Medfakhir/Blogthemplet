@@ -51,6 +51,8 @@ interface MediaFile {
   mimeType: string;
   uploadedAt: string;
   usedInArticles: number;
+  articleTitles?: string[];
+  articleSlugs?: string[];
 }
 
 export default function MediaPage() {
@@ -70,45 +72,33 @@ export default function MediaPage() {
 
   const fetchMediaFiles = async () => {
     try {
-      // Since we don't have a media API yet, we'll simulate it
-      // In a real app, this would fetch from /api/media
-      const mockData: MediaFile[] = [
-        {
-          id: "1",
-          filename: "hero-image.jpg",
-          originalName: "Hero Image.jpg",
-          url: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=800&h=400&fit=crop",
-          size: 245760,
-          mimeType: "image/jpeg",
-          uploadedAt: new Date().toISOString(),
-          usedInArticles: 3
-        },
-        {
-          id: "2", 
-          filename: "firestick-setup.png",
-          originalName: "Firestick Setup Guide.png",
-          url: "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=800&h=400&fit=crop",
-          size: 189440,
-          mimeType: "image/png",
-          uploadedAt: new Date(Date.now() - 86400000).toISOString(),
-          usedInArticles: 1
-        }
-      ];
+      console.log('📁 Fetching media files from API...');
+      const response = await fetch('/api/admin/media');
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch media files');
+      }
 
-      setMediaFiles(mockData);
+      const data = await response.json();
       
-      // Calculate stats
-      const totalSize = mockData.reduce((sum, file) => sum + file.size, 0);
-      const totalUsage = mockData.reduce((sum, file) => sum + file.usedInArticles, 0);
-      
-      setStats({
-        totalFiles: mockData.length,
-        totalSize,
-        totalUsage
-      });
+      if (data.success) {
+        console.log(`✅ Loaded ${data.data.files.length} media files`);
+        setMediaFiles(data.data.files);
+        setStats(data.data.stats);
+      } else {
+        throw new Error(data.error || 'Failed to fetch media files');
+      }
     } catch (error) {
-      console.error("Error fetching media files:", error);
+      console.error("❌ Error fetching media files:", error);
       toast.error("Failed to fetch media files");
+      
+      // Fallback to empty state instead of mock data
+      setMediaFiles([]);
+      setStats({
+        totalFiles: 0,
+        totalSize: 0,
+        totalUsage: 0
+      });
     } finally {
       setIsLoading(false);
     }
@@ -155,7 +145,7 @@ export default function MediaPage() {
       const formData = new FormData();
       formData.append('file', selectedFile);
 
-      const response = await fetch('/api/upload', {
+      const response = await fetch('/api/admin/media', {
         method: 'POST',
         body: formData,
       });
@@ -163,7 +153,7 @@ export default function MediaPage() {
       if (response.ok) {
         const result = await response.json();
         toast.success('File uploaded successfully!', {
-          description: `${selectedFile.name} has been uploaded to ImageKit.`,
+          description: `${selectedFile.name} has been uploaded and is ready to use.`,
           duration: 4000,
         });
         
@@ -194,9 +184,37 @@ export default function MediaPage() {
   };
 
   const handleDelete = async (fileId: string) => {
-    // In a real app, this would call DELETE /api/media/[id]
-    toast.success('File deleted successfully!');
-    setMediaFiles(mediaFiles.filter(file => file.id !== fileId));
+    try {
+      const response = await fetch(`/api/admin/media?id=${fileId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        toast.success('File deleted successfully!');
+        setMediaFiles(mediaFiles.filter(file => file.id !== fileId));
+        setDeleteFileId(null);
+        
+        // Update stats
+        const deletedFile = mediaFiles.find(file => file.id === fileId);
+        if (deletedFile) {
+          setStats(prev => ({
+            totalFiles: prev.totalFiles - 1,
+            totalSize: prev.totalSize - deletedFile.size,
+            totalUsage: prev.totalUsage - deletedFile.usedInArticles
+          }));
+        }
+      } else {
+        const error = await response.json();
+        toast.error('Delete failed', {
+          description: error.error || 'Please try again.',
+        });
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast.error('Delete failed', {
+        description: 'An error occurred while deleting the file.',
+      });
+    }
     setDeleteFileId(null);
   };
 
@@ -239,7 +257,7 @@ export default function MediaPage() {
             <DialogHeader>
               <DialogTitle>Upload New Media</DialogTitle>
               <DialogDescription>
-                Upload images to your media library. Files will be stored in ImageKit for optimization.
+                Upload images to your media library. Supported formats: JPG, PNG, WebP, GIF (max 10MB).
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
