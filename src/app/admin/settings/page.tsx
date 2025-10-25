@@ -33,6 +33,7 @@ interface SiteSettings {
   siteUrl: string;
   logoUrl: string;
   faviconUrl: string;
+  ogImageUrl: string;
   
   // SEO Settings
   defaultMetaTitle: string;
@@ -72,6 +73,7 @@ export default function SettingsPage() {
     siteUrl: "http://localhost:3000",
     logoUrl: "",
     faviconUrl: "",
+    ogImageUrl: "",
     
     // SEO Settings
     defaultMetaTitle: "IPTV Hub - Streaming Guides & Reviews",
@@ -197,7 +199,7 @@ export default function SettingsPage() {
     }
   };
 
-  const handleImageUpload = async (file: File, type: 'logo' | 'favicon') => {
+  const handleImageUpload = async (file: File, type: 'logo' | 'favicon' | 'ogimage') => {
     if (!file) return;
 
     // Validate file type
@@ -210,9 +212,10 @@ export default function SettingsPage() {
       return;
     }
 
-    // Validate file size (2MB max)
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('File size must be less than 2MB');
+    // Validate file size (5MB max for OG images, 2MB for others)
+    const maxSize = type === 'ogimage' ? 5 * 1024 * 1024 : 2 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast.error(`File size must be less than ${type === 'ogimage' ? '5MB' : '2MB'}`);
       return;
     }
 
@@ -230,12 +233,13 @@ export default function SettingsPage() {
       const data = await response.json();
 
       if (data.success) {
-        const fieldName = type === 'logo' ? 'logoUrl' : 'faviconUrl';
+        const fieldName = type === 'logo' ? 'logoUrl' : type === 'favicon' ? 'faviconUrl' : 'ogImageUrl';
         setSettings(prev => ({
           ...prev,
           [fieldName]: data.url
         }));
-        toast.success(`${type === 'logo' ? 'Logo' : 'Favicon'} uploaded successfully`);
+        const displayName = type === 'logo' ? 'Logo' : type === 'favicon' ? 'Favicon' : 'OG Image';
+        toast.success(`${displayName} uploaded successfully`);
       } else {
         toast.error(data.error || 'Upload failed');
       }
@@ -446,6 +450,54 @@ export default function SettingsPage() {
                           {isUploading ? 'Uploading...' : 'Upload'}
                         </Button>
                       </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="ogImageUrl">Open Graph Image</Label>
+                    <div className="mt-2 space-y-2">
+                      {settings.ogImageUrl && (
+                        <div className="flex items-center space-x-2 p-2 border rounded">
+                          <img 
+                            src={settings.ogImageUrl} 
+                            alt="OG image preview" 
+                            className="w-16 h-8 object-cover rounded"
+                          />
+                          <div>
+                            <span className="text-sm text-muted-foreground">Current OG image</span>
+                            <p className="text-xs text-muted-foreground">Recommended: 1200x630px</p>
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex space-x-2">
+                        <Input
+                          id="ogImageUrl"
+                          value={settings.ogImageUrl}
+                          onChange={(e) => handleInputChange('ogImageUrl', e.target.value)}
+                          placeholder="https://example.com/og-image.jpg"
+                          className="flex-1"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          disabled={isUploading}
+                          onClick={() => {
+                            const input = document.createElement('input');
+                            input.type = 'file';
+                            input.accept = '.jpg,.jpeg,.png,.webp';
+                            input.onchange = (e) => {
+                              const file = (e.target as HTMLInputElement).files?.[0];
+                              if (file) handleImageUpload(file, 'ogimage');
+                            };
+                            input.click();
+                          }}
+                        >
+                          {isUploading ? 'Uploading...' : 'Upload'}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Used for social media sharing. Recommended size: 1200x630px
+                      </p>
                     </div>
                   </div>
                 </div>

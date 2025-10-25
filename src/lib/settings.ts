@@ -7,6 +7,7 @@ export interface SiteSettings {
   siteUrl: string;
   logoUrl: string;
   faviconUrl: string;
+  ogImageUrl: string;
   defaultMetaTitle: string;
   defaultMetaDescription: string;
   defaultMetaKeywords: string;
@@ -38,6 +39,7 @@ const defaultSettings: SiteSettings = {
   siteUrl: 'http://localhost:3000',
   logoUrl: '',
   faviconUrl: '',
+  ogImageUrl: '',
   defaultMetaTitle: 'IPTV Hub - Streaming Guides & Reviews',
   defaultMetaDescription: 'Discover the best IPTV players, streaming devices, and setup guides.',
   defaultMetaKeywords: 'IPTV, streaming, firestick, android tv, IPTV players',
