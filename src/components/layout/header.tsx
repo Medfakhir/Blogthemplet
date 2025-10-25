@@ -127,11 +127,12 @@ export default function Header() {
 
           {/* Search & Mobile Menu */}
           <div className="flex items-center space-x-2">
+            {/* Search button - visible on all screen sizes */}
             <Button 
               variant="ghost" 
-              size="icon" 
-              className="hidden sm:flex"
+              size="icon"
               onClick={() => setIsSearchOpen(!isSearchOpen)}
+              title="Search"
             >
               <Search className="h-4 w-4" />
             </Button>
@@ -142,6 +143,7 @@ export default function Header() {
               size="icon"
               className="md:hidden"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
+              title="Menu"
             >
               {isMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </Button>
@@ -152,6 +154,19 @@ export default function Header() {
         {isMenuOpen && (
           <div className="md:hidden border-t py-4">
             <nav className="flex flex-col space-y-2">
+              {/* Search option in mobile menu */}
+              <button
+                onClick={() => {
+                  setIsSearchOpen(true);
+                  setIsMenuOpen(false);
+                }}
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2 text-left flex items-center space-x-2"
+              >
+                <Search className="h-4 w-4" />
+                <span>Search Articles</span>
+              </button>
+              
+              {/* Navigation links */}
               {navigation.map((item) => (
                 <Link
                   key={item.name}
@@ -168,9 +183,9 @@ export default function Header() {
 
         {/* Search Overlay */}
         {isSearchOpen && (
-          <div className="absolute top-full left-0 right-0 bg-background border-b shadow-lg">
+          <div className="absolute top-full left-0 right-0 bg-background border-b shadow-lg z-50">
             <div className="container mx-auto px-4 py-4">
-              <form onSubmit={handleSearch} className="flex items-center space-x-2">
+              <form onSubmit={handleSearch} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <div className="flex-1 relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
@@ -178,20 +193,28 @@ export default function Header() {
                     placeholder="Search articles..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 h-12 sm:h-10"
                     autoFocus
                   />
                 </div>
-                <Button type="submit" disabled={!searchQuery.trim()}>
-                  Search
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setIsSearchOpen(false)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    type="submit" 
+                    disabled={!searchQuery.trim()}
+                    className="flex-1 sm:flex-none h-12 sm:h-10"
+                  >
+                    Search
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setIsSearchOpen(false)}
+                    className="h-12 sm:h-10 px-3"
+                    title="Close search"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
               </form>
             </div>
           </div>
