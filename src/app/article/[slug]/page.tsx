@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Calendar, Clock, ArrowLeft, Share2, BookOpen, User, Tag } from "lucide-react";
 import { prisma } from "@/lib/db";
+import { safeDbOperation } from "@/lib/db-utils";
 import CommentSection from "@/components/comments/comment-section";
 
-// Force dynamic rendering to avoid caching issues with settings
-export const dynamic = 'force-dynamic';
+// Use ISR for better performance - revalidate every hour
+export const revalidate = 3600; // 1 hour
 
 interface ArticlePageProps {
   params: Promise<{
@@ -18,8 +19,10 @@ interface ArticlePageProps {
 }
 
 async function getArticle(slug: string) {
-  try {
-    const article = await prisma.article.findUnique({
+  console.log(`📖 Fetching article: ${slug}`);
+  
+  const article = await safeDbOperation(
+    () => prisma.article.findUnique({
       where: {
         slug: slug,
         status: 'PUBLISHED'
@@ -47,39 +50,45 @@ async function getArticle(slug: string) {
           }
         }
       }
-    });
+    }),
+    null
+  );
 
-    if (!article) {
-      return null;
+  if (!article) {
+    console.log(`❌ Article not found: ${slug}`);
+    // Check if it's a mock article
+    const mockArticle = mockArticles[slug as keyof typeof mockArticles];
+    if (mockArticle) {
+      console.log(`✅ Using mock article: ${slug}`);
+      return mockArticle;
     }
-
-    return {
-      id: article.id,
-      title: article.title,
-      description: article.excerpt || '',
-      content: article.content,
-      slug: article.slug,
-      publishedAt: article.publishedAt?.toISOString() || '',
-      updatedAt: article.updatedAt.toISOString(),
-      readTime: `${article.readTime || 5} min read`,
-      category: article.category.slug,
-      categoryName: article.category.name,
-      author: article.author.name,
-      tags: article.tags.map(t => t.tag.name),
-      featured: true,
-      views: article.viewCount || 0,
-      featuredImage: article.featuredImage
-    };
-  } catch (error) {
-    console.error('Error fetching article:', error);
     return null;
   }
+
+  console.log(`✅ Article found: ${article.title}`);
+  return {
+    id: article.id,
+    title: article.title,
+    description: article.excerpt || '',
+    content: article.content,
+    slug: article.slug,
+    publishedAt: article.publishedAt?.toISOString() || '',
+    updatedAt: article.updatedAt.toISOString(),
+    readTime: `${article.readTime || 5} min read`,
+    category: article.category.slug,
+    categoryName: article.category.name,
+    author: article.author.name,
+    tags: article.tags.map(t => t.tag.name),
+    featured: true,
+    views: article.viewCount || 0,
+    featuredImage: article.featuredImage
+  };
 }
 
 // Keep mock articles as fallback
 const mockArticles = {
   "best-iptv-players-android-2024": {
-    id: 1,
+    id: "1",
     title: "Best IPTV Players for Android in 2024",
     description: "Discover the top IPTV player applications for Android devices with features comparison and installation guides.",
     content: `
@@ -229,7 +238,7 @@ Remember to always use legitimate IPTV services and respect content licensing ag
     views: 1250,
   },
   "iptv-fire-tv-stick-setup-guide": {
-    id: 2,
+    id: "2",
     title: "Complete Guide to Setting Up IPTV on Fire TV Stick",
     description: "Step-by-step tutorial on how to install and configure IPTV applications on Amazon Fire TV Stick.",
     content: `

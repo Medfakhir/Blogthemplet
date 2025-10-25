@@ -8,8 +8,8 @@ import { Search, Filter, Grid, List, Calendar, Clock, User, Tag } from "lucide-r
 import { prisma } from "@/lib/db";
 import { safeDbOperation } from "@/lib/db-utils";
 
-// Force dynamic rendering to ensure database queries work at runtime
-export const dynamic = 'force-dynamic';
+// Use ISR for better performance - revalidate every 30 minutes
+export const revalidate = 1800; // 30 minutes
 
 export const metadata: Metadata = {
   title: "All Articles - IPTV Hub",

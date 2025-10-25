@@ -146,8 +146,8 @@ async function getFeaturedArticles() {
   }
 }
 
-// Force dynamic rendering to ensure database queries work at runtime
-export const dynamic = 'force-dynamic';
+// Use ISR for better performance - revalidate every 15 minutes
+export const revalidate = 900; // 15 minutes
 
 export default async function Home() {
   const featuredArticles = await getFeaturedArticles();
