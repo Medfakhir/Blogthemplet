@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,20 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Shield } from "lucide-react";
+
+// Add meta tags to prevent indexing
+if (typeof document !== 'undefined') {
+  // Prevent search engine indexing
+  const metaRobots = document.createElement('meta');
+  metaRobots.name = 'robots';
+  metaRobots.content = 'noindex, nofollow, noarchive, nosnippet';
+  document.head.appendChild(metaRobots);
+  
+  const metaTitle = document.createElement('meta');
+  metaTitle.name = 'title';
+  metaTitle.content = 'Admin Login - Private Area';
+  document.head.appendChild(metaTitle);
+}
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
