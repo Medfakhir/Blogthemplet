@@ -14,6 +14,7 @@ import { ArrowLeft, Save, Eye, Plus, X, Upload, Image as ImageIcon, Loader2 } fr
 import { toast } from "sonner";
 import Link from "next/link";
 import RichTextEditor from "@/components/editor/rich-text-editor";
+import SEOAnalyzer from "@/components/admin/seo-analyzer";
 
 export default function NewArticlePage() {
   const router = useRouter();
@@ -497,6 +498,15 @@ export default function NewArticlePage() {
               )}
             </CardContent>
           </Card>
+
+          {/* SEO Analyzer */}
+          <SEOAnalyzer
+            title={formData.title}
+            description={formData.seoDescription || formData.excerpt}
+            content={formData.content}
+            slug={formData.slug}
+            tags={tags}
+          />
 
           {/* Preview */}
           <Card>

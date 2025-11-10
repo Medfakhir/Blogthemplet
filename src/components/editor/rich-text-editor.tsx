@@ -35,7 +35,9 @@ import {
   Highlighter,
   Undo,
   Redo,
-  Type
+  Type,
+  Maximize,
+  Minimize
 } from 'lucide-react';
 import { useState, useCallback, useEffect } from 'react';
 
@@ -51,10 +53,27 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
   const [showImageDialog, setShowImageDialog] = useState(false);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Handle ESC key to exit fullscreen
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isFullscreen]);
+
+  const toggleFullscreen = useCallback(() => {
+    setIsFullscreen(!isFullscreen);
+  }, [isFullscreen]);
 
   const editor = useEditor({
     extensions: [
@@ -136,10 +155,10 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
   }
 
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div className={`border rounded-lg overflow-hidden ${isFullscreen ? 'fixed inset-0 z-50 bg-white' : ''}`}>
       {/* Toolbar */}
       <div className="border-b bg-gray-50 p-2">
-        <div className="flex flex-wrap items-center gap-1">
+        <div className="flex flex-wrap items-center gap-1 justify-between">
           {/* Text Formatting */}
           <div className="flex items-center gap-1">
             <Button
@@ -329,11 +348,23 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
               <Redo className="h-4 w-4" />
             </Button>
           </div>
+
+          {/* Fullscreen Toggle */}
+          <div className="flex items-center gap-1 ml-auto">
+            <Button
+              variant={isFullscreen ? 'default' : 'ghost'}
+              size="sm"
+              onClick={toggleFullscreen}
+              title={isFullscreen ? 'Exit Fullscreen (ESC)' : 'Enter Fullscreen'}
+            >
+              {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Editor Content */}
-      <div className="min-h-[400px] max-h-[600px] overflow-y-auto">
+      <div className={`overflow-y-auto ${isFullscreen ? 'h-[calc(100vh-60px)]' : 'min-h-[400px] max-h-[600px]'}`}>
         <EditorContent 
           editor={editor} 
           className="prose prose-sm sm:prose lg:prose-lg xl:prose-2xl max-w-none"
