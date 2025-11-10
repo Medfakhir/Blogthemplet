@@ -6,6 +6,7 @@ import ConditionalLayout from "@/components/layout/conditional-layout";
 import { Toaster } from "sonner";
 import { RealtimeProvider } from "@/contexts/realtime-context";
 import { getSettings } from "@/lib/settings";
+import DynamicFavicon from "@/components/dynamic-favicon";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -92,6 +93,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased min-h-screen`}>
         <RealtimeProvider>
+          <DynamicFavicon />
           <ConditionalLayout>
             {children}
           </ConditionalLayout>

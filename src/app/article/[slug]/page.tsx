@@ -8,6 +8,7 @@ import { Calendar, Clock, ArrowLeft, Share2, BookOpen, User, Tag } from "lucide-
 import { prisma } from "@/lib/db";
 import { safeDbOperation } from "@/lib/db-utils";
 import CommentSection from "@/components/comments/comment-section";
+import ArticleViewTracker from "@/components/article-view-tracker";
 
 // Use ISR for better performance - revalidate every hour
 export const revalidate = 3600; // 1 hour
@@ -435,6 +436,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
+      {/* Track article view */}
+      <ArticleViewTracker slug={slug} />
+      
       {/* Breadcrumb */}
       <nav className="mb-6">
         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
