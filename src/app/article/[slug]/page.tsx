@@ -9,6 +9,8 @@ import { prisma } from "@/lib/db";
 import { safeDbOperation } from "@/lib/db-utils";
 import CommentSection from "@/components/comments/comment-section";
 import ArticleViewTracker from "@/components/article-view-tracker";
+import ArticleSchema from "@/components/seo/article-schema";
+import BreadcrumbSchema from "@/components/seo/breadcrumb-schema";
 
 // Use ISR for better performance - revalidate every hour
 export const revalidate = 3600; // 1 hour
@@ -436,6 +438,25 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
+      {/* SEO Schema Markup */}
+      <ArticleSchema
+        title={article.title}
+        description={article.description}
+        author={article.author}
+        publishedAt={article.publishedAt}
+        updatedAt={article.updatedAt}
+        imageUrl={article.featuredImage || undefined}
+        url={`https://iptv-blogg.site/article/${slug}`}
+        category={article.categoryName}
+      />
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", url: "https://iptv-blogg.site" },
+          { name: article.categoryName, url: `https://iptv-blogg.site/category/${article.category}` },
+          { name: article.title, url: `https://iptv-blogg.site/article/${slug}` }
+        ]}
+      />
+      
       {/* Track article view */}
       <ArticleViewTracker slug={slug} />
       
