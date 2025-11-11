@@ -82,6 +82,11 @@ export default function Header() {
     }
   };
 
+  const handleNavigation = (href: string) => {
+    setIsMenuOpen(false);
+    router.push(href);
+  };
+
   // No need to fetch data here anymore - the context handles it
 
   return (
@@ -122,13 +127,13 @@ export default function Header() {
               </>
             ) : (
               navigation.map((item) => (
-                <Link
+                <button
                   key={item.name}
-                  href={item.href}
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={() => handleNavigation(item.href)}
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                 >
                   {item.name}
-                </Link>
+                </button>
               ))
             )}
           </nav>
@@ -176,13 +181,13 @@ export default function Header() {
               
               {/* Navigation links */}
               {navigation.map((item) => (
-                <Link
+                <button
                   key={item.name}
-                  href={item.href}
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2"
+                  onClick={() => handleNavigation(item.href)}
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors py-2 text-left cursor-pointer"
                 >
                   {item.name}
-                </Link>
+                </button>
               ))}
             </nav>
           </div>
