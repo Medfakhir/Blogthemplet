@@ -11,7 +11,8 @@ import {
   Eye, 
   TrendingUp,
   Plus,
-  BarChart3
+  BarChart3,
+  Settings
 } from "lucide-react";
 import Link from "next/link";
 
@@ -117,12 +118,12 @@ export default function AdminDashboard() {
           </p>
         </div>
         <div className="flex items-center space-x-3">
-          <Link href="/admin/articles/new">
-            <Button>
+          <Button asChild>
+            <Link href="/admin/articles/new">
               <Plus className="h-4 w-4 mr-2" />
               New Article
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </div>
 
@@ -182,11 +183,11 @@ export default function AdminDashboard() {
                       </span>
                     </div>
                   </div>
-                  <Link href={`/admin/articles/${article.id}`}>
-                    <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href={`/admin/articles/${article.id}`}>
                       Edit
-                    </Button>
-                  </Link>
+                    </Link>
+                  </Button>
                 </div>
               )) || (
                 <p className="text-sm text-slate-500 text-center py-4">
@@ -210,30 +211,30 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <Link href="/admin/articles/new" className="block">
-                <Button variant="outline" className="w-full justify-start">
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <Link href="/admin/articles/new">
                   <Plus className="h-4 w-4 mr-2" />
                   Create New Article
-                </Button>
-              </Link>
-              <Link href="/admin/categories" className="block">
-                <Button variant="outline" className="w-full justify-start">
+                </Link>
+              </Button>
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <Link href="/admin/categories">
                   <FolderOpen className="h-4 w-4 mr-2" />
                   Manage Categories
-                </Button>
-              </Link>
-              <Link href="/admin/media" className="block">
-                <Button variant="outline" className="w-full justify-start">
+                </Link>
+              </Button>
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <Link href="/admin/media">
                   <FileText className="h-4 w-4 mr-2" />
                   Upload Media
-                </Button>
-              </Link>
-              <Link href="/admin/settings" className="block">
-                <Button variant="outline" className="w-full justify-start">
-                  <BarChart3 className="h-4 w-4 mr-2" />
+                </Link>
+              </Button>
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <Link href="/admin/settings">
+                  <Settings className="h-4 w-4 mr-2" />
                   Site Settings
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </div>
           </CardContent>
         </Card>
