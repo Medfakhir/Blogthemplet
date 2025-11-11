@@ -14,30 +14,30 @@ export async function GET() {
     
     // Convert array of key-value pairs to object
     const settingsObject = settings.reduce((acc, setting) => {
-      let value = setting.value;
+      let value: string | number | boolean | Record<string, unknown> = setting.value;
       
       // Parse value based on type
       switch (setting.type) {
         case 'number':
-          value = parseFloat(setting.value) as any;
+          value = parseFloat(setting.value);
           break;
         case 'boolean':
-          value = (setting.value === 'true') as any;
+          value = setting.value === 'true';
           break;
         case 'json':
           try {
-            value = JSON.parse(setting.value) as any;
+            value = JSON.parse(setting.value) as Record<string, unknown>;
           } catch {
-            value = setting.value as any;
+            value = setting.value;
           }
           break;
         default:
-          value = setting.value as any;
+          value = setting.value;
       }
       
       acc[setting.key] = value;
       return acc;
-    }, {} as Record<string, any>);
+    }, {} as Record<string, string | number | boolean | Record<string, unknown>>);
 
     // Set default values if not found
     const defaultSettings = {

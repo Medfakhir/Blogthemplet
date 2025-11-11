@@ -17,6 +17,7 @@ async function searchArticles(query: string) {
   }
 
   try {
+    // MySQL is case-insensitive by default for LIKE queries
     const articles = await prisma.article.findMany({
       where: {
         status: 'PUBLISHED',
@@ -33,6 +34,11 @@ async function searchArticles(query: string) {
           },
           {
             content: {
+              contains: query
+            }
+          },
+          {
+            seoKeywords: {
               contains: query
             }
           }
@@ -59,7 +65,9 @@ async function searchArticles(query: string) {
 
     return articles;
   } catch (error) {
-    console.error('Search error:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Search error:', error);
+    }
     return [];
   }
 }

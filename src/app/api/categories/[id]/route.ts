@@ -3,9 +3,9 @@ import { prisma } from '@/lib/db'
 import { safeDbOperation } from '@/lib/db-utils'
 import { broadcastUpdate } from '@/app/api/events/route'
 
-interface ApiResponse {
+interface ApiResponse<T = unknown> {
   success: boolean
-  data?: any
+  data?: T
   error?: string
   message?: string
 }

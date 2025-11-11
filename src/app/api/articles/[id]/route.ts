@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 
-interface ApiResponse {
+interface ApiResponse<T = unknown> {
   success: boolean
-  data?: any
+  data?: T
   error?: string
   message?: string
 }

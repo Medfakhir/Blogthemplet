@@ -1,12 +1,8 @@
 import { Metadata } from "next";
-import ArticleCard from "@/components/blog/article-card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Search, Filter, Grid, List, Calendar, Clock, User, Tag } from "lucide-react";
+import { Grid, Tag } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { safeDbOperation } from "@/lib/db-utils";
+import ArticlesClient from "@/components/articles/articles-client";
 
 // Use ISR for better performance - revalidate every 30 minutes
 export const revalidate = 1800; // 30 minutes
@@ -18,9 +14,6 @@ export const metadata: Metadata = {
 };
 
 async function getAllArticles() {
-  console.log('📄 Fetching all articles from database...');
-  console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
-  
   try {
     const articles = await safeDbOperation(
       () => prisma.article.findMany({
@@ -59,7 +52,6 @@ async function getAllArticles() {
     );
 
     if (articles && articles.length > 0) {
-      console.log(`✅ Successfully found ${articles.length} articles for articles page`);
       return articles.map(article => ({
         title: article.title,
         excerpt: article.excerpt || '',
@@ -80,16 +72,16 @@ async function getAllArticles() {
       }));
     }
 
-    console.log('⚠️ No articles found in database for articles page');
     return [];
   } catch (error) {
-    console.error('❌ Error fetching articles for articles page:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error fetching articles:', error);
+    }
     return [];
   }
 }
 
 async function getCategories() {
-  console.log('📂 Fetching categories from database...');
   
   try {
     const categories = await safeDbOperation(
@@ -113,7 +105,6 @@ async function getCategories() {
     );
 
     if (categories && categories.length > 0) {
-      console.log(`✅ Successfully found ${categories.length} categories`);
       return categories.map(category => ({
         id: category.id,
         name: category.name,
@@ -123,10 +114,11 @@ async function getCategories() {
       }));
     }
 
-    console.log('⚠️ No categories found in database');
     return [];
   } catch (error) {
-    console.error('❌ Error fetching categories:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error fetching categories:', error);
+    }
     return [];
   }
 }
@@ -159,50 +151,6 @@ export default async function AllArticlesPage() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="mb-8">
-        <div className="bg-card rounded-lg border p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search articles..."
-                className="pl-10"
-              />
-            </div>
-
-            {/* Category Filter */}
-            <Select>
-              <SelectTrigger>
-                <SelectValue placeholder="All Categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.slug}>
-                    {category.name} ({category.articleCount})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Sort */}
-            <Select defaultValue="newest">
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="newest">Newest First</SelectItem>
-                <SelectItem value="oldest">Oldest First</SelectItem>
-                <SelectItem value="popular">Most Popular</SelectItem>
-                <SelectItem value="title">Title A-Z</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
-
       {/* Categories Overview */}
       <div className="mb-8">
         <h2 className="text-2xl font-semibold mb-4">Browse by Category</h2>
@@ -214,7 +162,7 @@ export default async function AllArticlesPage() {
               className="group"
             >
               <div className="bg-card border rounded-lg p-3 text-center hover:shadow-md transition-shadow">
-                <div 
+                <div
                   className="w-8 h-8 rounded-full mx-auto mb-2"
                   style={{ backgroundColor: category.color || '#3B82F6' }}
                 />
@@ -230,115 +178,8 @@ export default async function AllArticlesPage() {
         </div>
       </div>
 
-      {/* Articles Grid */}
-      <div className="space-y-8">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold">Latest Articles</h2>
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm">
-              <Grid className="h-4 w-4 mr-2" />
-              Grid
-            </Button>
-            <Button variant="ghost" size="sm">
-              <List className="h-4 w-4 mr-2" />
-              List
-            </Button>
-          </div>
-        </div>
-
-        {articles.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-muted-foreground">
-              <Grid className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-medium mb-2">No articles found</h3>
-              <p>Check back later for new content.</p>
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {articles.map((article) => (
-              <div key={article.slug} className="group">
-                <ArticleCard
-                  title={article.title}
-                  excerpt={article.excerpt}
-                  slug={article.slug}
-                  featuredImage={article.featuredImage}
-                  category={article.category}
-                  publishedAt={article.publishedAt}
-                  readTime={article.readTime}
-                  author={article.author}
-                />
-                
-                {/* Additional metadata */}
-                <div className="mt-3 px-1">
-                  <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
-                    <div className="flex items-center space-x-3">
-                      <div className="flex items-center">
-                        <Calendar className="h-3 w-3 mr-1" />
-                        {article.publishedAt}
-                      </div>
-                      <div className="flex items-center">
-                        <Clock className="h-3 w-3 mr-1" />
-                        {article.readTime}
-                      </div>
-                      <div className="flex items-center">
-                        <User className="h-3 w-3 mr-1" />
-                        {article.author}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Category Badge */}
-                  <div className="flex items-center justify-between">
-                    <Badge 
-                      variant="secondary" 
-                      className="text-xs"
-                      style={{ 
-                        backgroundColor: `${article.categoryColor || '#3B82F6'}20`,
-                        color: article.categoryColor || '#3B82F6',
-                        borderColor: `${article.categoryColor || '#3B82F6'}40`
-                      }}
-                    >
-                      {article.category}
-                    </Badge>
-                    
-                    {article.viewCount > 0 && (
-                      <span className="text-xs text-muted-foreground">
-                        {article.viewCount.toLocaleString()} views
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Tags */}
-                  {article.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {article.tags.slice(0, 3).map((tag) => (
-                        <Badge key={tag} variant="outline" className="text-xs">
-                          {tag}
-                        </Badge>
-                      ))}
-                      {article.tags.length > 3 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{article.tags.length - 3} more
-                        </Badge>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Load More */}
-      {articles.length > 0 && (
-        <div className="text-center mt-12">
-          <Button variant="outline" size="lg">
-            Load More Articles
-          </Button>
-        </div>
-      )}
+      {/* Client-side filtered articles */}
+      <ArticlesClient initialArticles={articles} categories={categories} />
     </div>
   );
 }

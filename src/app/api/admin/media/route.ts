@@ -2,9 +2,23 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { safeDbOperation } from '@/lib/db-utils';
 
+// Type for uploaded file
+interface UploadedFile {
+  id: string;
+  filename: string;
+  originalName: string;
+  url: string;
+  size: number;
+  mimeType: string;
+  uploadedAt: string;
+  usedInArticles: number;
+  articleTitles: string[];
+  articleSlugs: string[];
+}
+
 // In-memory storage for uploaded files (for demo purposes)
 // In production, this would be in a database
-let uploadedFiles: any[] = [];
+let uploadedFiles: UploadedFile[] = [];
 
 // GET /api/admin/media - Get all media files
 export async function GET() {

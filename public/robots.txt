@@ -19,4 +19,4 @@ Disallow: /_next/
 Disallow: /.*
 
 # Sitemap location
-Sitemap: https://iptv-blogg.netlify.app/sitemap.xml
+Sitemap: https://iptv-blogg.site/sitemap.xml

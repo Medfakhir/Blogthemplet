@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { ApiResponse, PaginatedResponse, ArticleListItem } from '@/types/database'
+import { Prisma } from '@prisma/client'
 
 // GET /api/articles - Get all published articles with pagination
 export async function GET(request: NextRequest) {
@@ -15,15 +16,15 @@ export async function GET(request: NextRequest) {
 
     const skip = (page - 1) * limit
 
-    // Build where clause
-    const where: any = {}
+    // Build where clause using Prisma types
+    const where: Prisma.ArticleWhereInput = {}
     
     // Handle status filter
     if (status === 'all') {
       // No status filter - show all articles (admin view)
-    } else if (status) {
+    } else if (status && (status === 'PUBLISHED' || status === 'DRAFT' || status === 'ARCHIVED')) {
       // Specific status requested
-      where.status = status
+      where.status = status as 'PUBLISHED' | 'DRAFT' | 'ARCHIVED'
     } else {
       // Default: show only published articles (public view)
       where.status = 'PUBLISHED'

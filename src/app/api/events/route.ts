@@ -4,7 +4,7 @@ import { NextRequest } from 'next/server';
 const connections = new Set<ReadableStreamDefaultController>();
 
 // Broadcast function to send updates to all connected clients
-export function broadcastUpdate(type: string, data: any) {
+export function broadcastUpdate(type: string, data: unknown) {
   const message = `data: ${JSON.stringify({ type, data, timestamp: Date.now() })}\n\n`;
   
   connections.forEach(controller => {
