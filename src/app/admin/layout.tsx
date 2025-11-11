@@ -174,7 +174,6 @@ export default function AdminLayout({
                     : 'text-slate-700 hover:bg-slate-100'
                   }
                 `}
-                onClick={() => setSidebarOpen(false)}
                 title={sidebarCollapsed ? item.name : undefined}
               >
                 <item.icon className="h-5 w-5" />
