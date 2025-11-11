@@ -236,7 +236,21 @@ export default function CategoriesPage() {
         const categoriesData = result.data || [];
         
         // Transform API data to match component interface
-        const transformedCategories = categoriesData.map((cat: any) => ({
+        interface ApiCategory {
+          id: string;
+          name: string;
+          slug: string;
+          description?: string;
+          color?: string;
+          icon?: string;
+          isActive?: boolean;
+          showInMenu?: boolean;
+          menuOrder?: number;
+          menuLabel?: string;
+          createdAt?: string;
+          _count?: { articles: number };
+        }
+        const transformedCategories = (categoriesData as ApiCategory[]).map((cat) => ({
           id: cat.id,
           name: cat.name,
           slug: cat.slug,
@@ -335,7 +349,7 @@ export default function CategoriesPage() {
   };
 
   const handleInputChange = (field: string, value: string) => {
-    let processedValue: any = value;
+    let processedValue: string | boolean | number = value;
     
     // Handle boolean fields
     if (field === "showInMenu" || field === "isActive") {

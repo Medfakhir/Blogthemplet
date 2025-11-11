@@ -39,7 +39,7 @@ export default function Header() {
     }
     
     // Update logo URL from settings
-    if (realtimeData.settings && realtimeData.settings.logoUrl) {
+    if (realtimeData.settings && typeof realtimeData.settings.logoUrl === 'string') {
       setLogoUrl(realtimeData.settings.logoUrl);
     } else if (realtimeData.settings) {
       // Clear logo if no logoUrl in settings
@@ -50,10 +50,18 @@ export default function Header() {
   // Update navigation from real-time categories - only when we have real data
   useEffect(() => {
     if (realtimeData.categories && realtimeData.categories.length > 0) {
-      const menuCategories = realtimeData.categories
-        .filter((cat: any) => cat.showInMenu && cat.isActive)
-        .sort((a: any, b: any) => (a.menuOrder || 0) - (b.menuOrder || 0))
-        .map((cat: any) => ({
+      interface Category {
+        showInMenu?: boolean;
+        isActive?: boolean;
+        menuOrder?: number;
+        menuLabel?: string;
+        name: string;
+        slug: string;
+      }
+      const menuCategories = (realtimeData.categories as Category[])
+        .filter((cat) => cat.showInMenu && cat.isActive)
+        .sort((a, b) => (a.menuOrder || 0) - (b.menuOrder || 0))
+        .map((cat) => ({
           name: cat.menuLabel || cat.name,
           href: `/category/${cat.slug}`
         }));

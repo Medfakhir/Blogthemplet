@@ -239,6 +239,7 @@ Remember to always use legitimate IPTV services and respect content licensing ag
     tags: ["IPTV", "Android", "Streaming", "Apps", "Reviews"],
     featured: true,
     views: 1250,
+    featuredImage: null,
   },
   "iptv-fire-tv-stick-setup-guide": {
     id: "2",
@@ -396,6 +397,7 @@ Remember to use only legitimate IPTV services and follow all applicable laws and
     tags: ["Fire TV Stick", "IPTV", "Setup", "Tutorial", "Streaming"],
     featured: false,
     views: 890,
+    featuredImage: null,
   },
   // Add more articles as needed
 };

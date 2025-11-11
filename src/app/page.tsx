@@ -106,7 +106,7 @@ export default async function Home() {
           <div className="text-center space-y-4 mb-12">
             <h2 className="text-3xl font-bold">Browse by Category</h2>
             <p className="text-muted-foreground">
-              Find exactly what you're looking for with our organized content categories.
+              Find exactly what you&apos;re looking for with our organized content categories.
             </p>
           </div>
 

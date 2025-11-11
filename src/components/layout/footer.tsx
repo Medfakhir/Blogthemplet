@@ -54,7 +54,7 @@ export default function Footer() {
             <Link href="/" className="inline-flex items-center space-x-2">
               {!isMounted || isInitialLoading ? (
                 <div className="animate-pulse bg-gray-200 rounded w-8 h-8"></div>
-              ) : realtimeData.settings?.logoUrl ? (
+              ) : realtimeData.settings?.logoUrl && typeof realtimeData.settings.logoUrl === 'string' ? (
                 <img 
                   src={realtimeData.settings.logoUrl} 
                   alt={realtimeData.siteName || "IPTV Hub"} 

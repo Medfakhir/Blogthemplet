@@ -4,8 +4,8 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 
 interface RealtimeData {
   siteName: string;
-  categories: any[];
-  settings: any;
+  categories: unknown[];
+  settings: Record<string, unknown> | null;
   lastUpdate: number;
 }
 
@@ -13,7 +13,7 @@ interface RealtimeContextType {
   data: RealtimeData;
   isConnected: boolean;
   isInitialLoading: boolean;
-  updateData: (type: string, newData: any) => void;
+  updateData: (type: string, newData: unknown) => void;
 }
 
 const RealtimeContext = createContext<RealtimeContextType | undefined>(undefined);
@@ -187,7 +187,7 @@ export function RealtimeProvider({ children }: RealtimeProviderProps) {
     };
   }, [isMounted]);
 
-  const updateData = (type: string, newData: any) => {
+  const updateData = (type: string, newData: unknown) => {
     setData(prev => ({
       ...prev,
       [type]: newData,

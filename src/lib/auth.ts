@@ -17,7 +17,7 @@ export async function verifyAdminToken(request: NextRequest): Promise<AdminUser 
       return null
     }
 
-    const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any
+    const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as { userId: string }
 
     // Verify user still exists in database
     const adminUser = await prisma.adminUser.findUnique({

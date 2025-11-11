@@ -90,7 +90,7 @@ export async function getSettings(): Promise<SiteSettings> {
     
     // Convert array of key-value pairs to object
     const settingsObject = settings.reduce((acc, setting) => {
-      let value: any = setting.value;
+      let value: string | number | boolean | Record<string, unknown> = setting.value;
       
       // Parse value based on type
       switch (setting.type) {
@@ -113,7 +113,7 @@ export async function getSettings(): Promise<SiteSettings> {
       
       acc[setting.key] = value;
       return acc;
-    }, {} as Record<string, any>);
+    }, {} as Record<string, string | number | boolean | Record<string, unknown>>);
 
     // Merge with defaults
     settingsCache = { ...defaultSettings, ...settingsObject };
@@ -126,7 +126,7 @@ export async function getSettings(): Promise<SiteSettings> {
   }
 }
 
-export async function getSetting(key: keyof SiteSettings): Promise<any> {
+export async function getSetting(key: keyof SiteSettings): Promise<string | number | boolean | Record<string, unknown>> {
   const settings = await getSettings();
   return settings[key];
 }

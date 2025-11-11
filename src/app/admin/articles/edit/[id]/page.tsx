@@ -92,7 +92,7 @@ export default function EditArticlePage({ params }: EditArticlePageProps) {
 
             // Set tags if available
             if (article.tags) {
-              setTags(article.tags.map((t: any) => t.tag.name));
+              setTags(article.tags.map((t: { tag: { name: string } }) => t.tag.name));
             }
           }
         }

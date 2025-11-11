@@ -221,7 +221,7 @@ export function validateQuery<T>(
     Object.keys(params).forEach(key => {
       const value = params[key];
       if (typeof value === 'string' && !isNaN(Number(value))) {
-        (params as any)[key] = Number(value);
+        (params as Record<string, unknown>)[key] = Number(value);
       }
     });
     

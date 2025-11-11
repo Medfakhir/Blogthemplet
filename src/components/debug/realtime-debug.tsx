@@ -37,7 +37,7 @@ export default function RealtimeDebug() {
               <strong>Categories:</strong> {data.categories.length} items
               {data.categories.length > 0 && (
                 <ul className="ml-2 mt-1">
-                  {data.categories.slice(0, 3).map((cat: any) => (
+                  {(data.categories as Array<{ id: string; name: string; showInMenu?: boolean }>).slice(0, 3).map((cat) => (
                     <li key={cat.id}>• {cat.name} ({cat.showInMenu ? 'menu' : 'hidden'})</li>
                   ))}
                   {data.categories.length > 3 && <li>... and {data.categories.length - 3} more</li>}
@@ -48,7 +48,7 @@ export default function RealtimeDebug() {
               <strong>Last Update:</strong> {new Date(data.lastUpdate).toLocaleTimeString()}
             </div>
             <div>
-              <strong>Settings Keys:</strong> {Object.keys(data.settings).length}
+              <strong>Settings Keys:</strong> {data.settings ? Object.keys(data.settings).length : 0}
             </div>
           </div>
         </div>

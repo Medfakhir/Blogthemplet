@@ -87,7 +87,7 @@ export type TagWithCount = Prisma.TagGetPayload<{
 }>
 
 // Admin user without password
-export type SafeAdminUser = Omit<Prisma.AdminUserGetPayload<{}>, 'password'>
+export type SafeAdminUser = Omit<Prisma.AdminUserGetPayload<Record<string, never>>, 'password'>
 
 // Media with usage count
 export type MediaWithUsage = Prisma.MediaGetPayload<{
@@ -101,7 +101,7 @@ export type MediaWithUsage = Prisma.MediaGetPayload<{
 }>
 
 // API Response types
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean
   data?: T
   error?: string
